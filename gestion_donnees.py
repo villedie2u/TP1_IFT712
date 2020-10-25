@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 #####
-# VotreNom (VotreMatricule) .~= À MODIFIER =~.
+# Lucile Peltier (matricule : 20 081 340)
+# Maxime Villedieu (matricule : 20138110)
+# Pierre-Antoine Grosselin (matricule : 20 138 879)
 ###
 
 import numpy as np
