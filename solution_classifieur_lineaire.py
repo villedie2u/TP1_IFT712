@@ -70,40 +70,55 @@ class ClassifieurLineaire:
             N=len(t_train)
             
             #Calcul de p
-            p=0
-            N2=0
-            for t in t_train:
-                p=p+t
-                if t==0:
-                    N2=N2+1.0
-            N1=p
+            x1 = []
+            x2 = []
+            nb_data = len(t_train)
+            for i in range(nb_data):
+                if t_train[i] == 1.0:
+                    x1.append(x_train[i])
+                else:
+                    x2.append(x_train[i])
+                    
+            N1 = len(x1)
+            N2 = len(x2)
+            p = N1/(N1+N2)
             
             #Calcul de mu1 et mu2
-            mu1=0
-            mu2=0
+            mu1=[[0],[0]]
+            mu2=[[0],[0]]
             for i in range(N):
-                mu1=mu1+(t_train[i]*x_train[i])
-                mu2=mu2+((1-t_train[i])*x_train[i])
-            mu1=mu1/N1
-            mu2=mu2/N2
+                
+                mu1[0][0]=mu1[0][0]+(t_train[i]*x_train[i][0])
+                mu1[1][0]=mu1[1][0]+(t_train[i]*x_train[i][1])
+                mu2[0][0]=mu2[0][0]+((1-t_train[i])*x_train[i][0])
+                mu2[1][0]=mu2[1][0]+((1-t_train[i])*x_train[i][1])
+                
+                
+               
+            mu1[0][0]=mu1[0][0]/N1
+            mu1[1][0]=mu1[1][0]/N1
+            mu2[0][0]=mu2[0][0]/N2
+            mu2[1][0]=mu2[1][0]/N2
+            
+            mu1=np.array(mu1)
+            mu2=np.array(mu2)
             
             #Calcul de sigma
             S=np.zeros((2,2))
             S1=np.zeros((2,2))
             S2=np.zeros((2,2))
-            mu1_matrice = np.array([[mu1[0],mu1[1]]])
-            mu2_matrice = np.array([[mu2[0],mu2[1]]])
+            
+                   
             for i in range(N):
-                xi = np.array([[x_train[i][0],x_train[i][1]]])
-                #terme = 0
-                #print(xi)
+                xi = np.array([[x_train[i][0]],[x_train[i][1]]])
+                
                 if t_train[i]==1:
-                    terme = np.dot((xi-mu1_matrice).transpose(),(xi-mu1_matrice))
-                    #print(terme)
+                    terme = np.dot((xi-mu1),(xi-mu1).transpose())
+                    
                     S1=S1+terme
                 elif t_train[i]==0:
-                    terme = np.dot((xi-mu2_matrice).transpose(),(xi-mu2_matrice))
-                    #print(terme)
+                    terme = np.dot((xi-mu2),(xi-mu2).transpose())
+                    
                     S2=S2+terme
             S1=S1/N1
             S2=S2/N2
@@ -115,19 +130,20 @@ class ClassifieurLineaire:
             
             
             #Calcul de self.w
-            mu1_moins_mu2 = mu1_matrice-mu2_matrice
+            mu1_moins_mu2 = mu1-mu2
             S_inv = np.linalg.inv(S)
-            self.w = np.dot(S_inv,mu1_moins_mu2.transpose())
+            self.w = np.dot(S_inv,mu1_moins_mu2)
             
             #Calcul de self.w_0
             PC1=N1/N
             PC2=N2/N
-            terme1= -0.5*np.dot(np.dot(mu1,S_inv),(mu1.transpose()))
-            terme2= 0.5*np.dot(np.dot(mu2,S_inv),(mu2.transpose()))
+            terme1= -0.5*np.dot(np.dot(mu1.transpose(),S_inv),(mu1))
+            terme2= 0.5*np.dot(np.dot(mu2.transpose(),S_inv),(mu2))
             terme3= np.log(PC1/PC2)
             
-            self.w_0 = terme1 + terme2 + terme3
+            w0_temp = terme1 + terme2 + terme3
             
+            self.w_0 = w0_temp[0][0]
             
 
         elif self.methode == 2:  # Perceptron + SGD, learning rate = 0.001, nb_iterations_max = 1000
