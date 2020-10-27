@@ -117,26 +117,50 @@ class ClassifieurLineaire:
             #Calcul de self.w
             mu1_moins_mu2 = mu1_matrice-mu2_matrice
             S_inv = np.linalg.inv(S)
-            self.w = np.dot(S_inv,mu1_moins_mu2.transpose())
+            self.w = np.dot(S_inv, mu1_moins_mu2.transpose())
             
             #Calcul de self.w_0
-            PC1=N1/N
-            PC2=N2/N
-            terme1= -0.5*np.dot(np.dot(mu1,S_inv),(mu1.transpose()))
-            terme2= 0.5*np.dot(np.dot(mu2,S_inv),(mu2.transpose()))
-            terme3= np.log(PC1/PC2)
+            PC1 = N1/N
+            PC2 = N2/N
+            terme1 = -0.5*np.dot(np.dot(mu1, S_inv), (mu1.transpose()))
+            terme2 = 0.5*np.dot(np.dot(mu2, S_inv), (mu2.transpose()))
+            terme3 = np.log(PC1/PC2)
             
             self.w_0 = terme1 + terme2 + terme3
             
             
 
         elif self.methode == 2:  # Perceptron + SGD, learning rate = 0.001, nb_iterations_max = 1000
+            """
+            initialiser w
+            k=0
+            Do k +=1
+                for n=1 to N
+                    if w^t.x.t < 0 then # donnée mal classée
+                        w = w + learning_rate.t.x
+            until donnees bien classés
+            """
             print('Perceptron')
-            # AJOUTER CODE ICI
+            # todo voir le biais
+            learning_rate = 0.001
+            for k in range(1000):
+                gradient = x_train
+                for i in range(len(gradient)):
+                    print("TEST:", x_train[i])
+                    test = np.transpose(self.w).dot(x_train[i])*t_train[i]
+                    if test >= 0:  # donnée mal classée
+                        gradient = -t_train[i] * x_train[i]
+                        self.w += learning_rate * gradient
+                    else:
+                        break
+            self.w_0 = 0
 
         else:  # Perceptron + SGD [sklearn] + learning rate = 0.001 + penalty 'l2' voir http://scikit-learn.org/
             print('Perceptron [sklearn]')
-            # AJOUTER CODE ICI
+            clf = Perceptron(tol=0.001, random_state=0)
+            clf.fit(x_train, t_train)
+            self.w = clf.coef_[0]
+            self.w_0 = clf.intercept_
 
         print('w = ', self.w, 'w_0 = ', self.w_0, '\n')
 
