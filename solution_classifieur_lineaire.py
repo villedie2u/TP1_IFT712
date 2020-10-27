@@ -9,6 +9,7 @@
 import numpy as np
 from sklearn.linear_model import Perceptron
 import matplotlib.pyplot as plt
+from random import randint
 
 
 class ClassifieurLineaire:
@@ -161,22 +162,25 @@ class ClassifieurLineaire:
             until donnees bien classés
             """
             print('Perceptron')
-            # todo voir le biais
-            learning_rate = 0.001
+            learning_rate = self.lamb
+            self.w = np.array([float(randint(-10, 10)), float(randint(-10, 10))])
+            self.w_0 = randint(-10, 10)
             for k in range(1000):
-                gradient = x_train
-                for i in range(len(gradient)):
-                    test = np.transpose(self.w).dot(x_train[i])*t_train[i]
-                    if test >= 0:  # donnée mal classée
-                        gradient = -t_train[i] * x_train[i]
-                        self.w += learning_rate * gradient
-                    else:
-                        break
-            self.w_0 = 0
+                test_0 = True
+                for i in range(len(x_train)):
+                    w_temp = np.insert(self.w, 0, self.w_0, axis=0)
+                    x_i = np.insert(x_train[i], 0, 1., axis=0)
+                    if np.dot(np.transpose(w_temp), x_i*(t_train[i]-0.5)) < 0:  # donnée mal classée
+                        test_0 = False
+                        self.w += learning_rate * 2 * (t_train[i]-0.5) * x_train[i]
+                        self.w_0 += learning_rate * 2 * (t_train[i]-0.5)
+                if test_0:
+                    print("\u001B[34m", "\tles données sont bien classées", "\u001B[0m")
+                    break
 
         else:  # Perceptron + SGD [sklearn] + learning rate = 0.001 + penalty 'l2' voir http://scikit-learn.org/
             print('Perceptron [sklearn]')
-            clf = Perceptron(tol=0.001, random_state=0)
+            clf = Perceptron(tol=self.lamb, random_state=0)
             clf.fit(x_train, t_train)
             self.w = clf.coef_[0]
             self.w_0 = clf.intercept_
